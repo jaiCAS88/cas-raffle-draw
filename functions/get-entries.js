@@ -42,10 +42,9 @@ exports.handler = async function(event, context) {
         }
 
         return { name, email };
-      }); // no filtering
+      }).filter(entry => entry.name && entry.email);
     }
 
-    // Remove duplicates
     const unique = {};
     names.forEach(entry => {
       unique[entry.name + entry.email] = entry;
@@ -58,7 +57,10 @@ exports.handler = async function(event, context) {
         "Access-Control-Allow-Headers": "Content-Type",
       },
       body: JSON.stringify(Object.values(unique)),
-    };    
+    };
+
+  } catch (error) {
+    console.error("Error:", error);
 
     return {
       statusCode: 500,
@@ -67,6 +69,6 @@ exports.handler = async function(event, context) {
         "Access-Control-Allow-Headers": "Content-Type",
       },
       body: JSON.stringify({ error: error.message }),
-    };    
+    };
   }
 };
