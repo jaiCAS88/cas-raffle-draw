@@ -50,10 +50,6 @@
       background-color: #333;
     }
 
-    .tile.removed {
-      display: none;
-    }
-
     .name {
       font-size: 1.2rem;
       color: #ffd700;
@@ -149,10 +145,10 @@
     }
 
     function getWinChance() {
-      if (winners.length === 0) return 0.3;
-      if (winners.length === 1) return 0.5;
-      if (winners.length === 2) return 0.8;
-      return 0;
+      const remainingTiles = document.querySelectorAll(".tile").length;
+      const winnersLeft = maxWinners - winners.length;
+      if (remainingTiles === 0) return 0;
+      return Math.max(winnersLeft / remainingTiles, winners.length === 0 ? 0.3 : winners.length === 1 ? 0.5 : 0.8);
     }
 
     function showModal(isWinner, name) {
@@ -196,9 +192,17 @@
 
         showModal(isWinner, entry.name);
         div.remove();
+
+        if (winners.length >= maxWinners) {
+          disableAllTiles();
+        }
       });
 
       grid.appendChild(div);
+    }
+
+    function disableAllTiles() {
+      document.querySelectorAll(".tile").forEach(tile => tile.style.pointerEvents = "none");
     }
 
     async function loadEntries() {
