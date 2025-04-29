@@ -19,18 +19,28 @@ exports.handler = async function(event, context) {
     });
 
     const data = await response.json();
-    
-    const names = data.results.map(page => {
-      const name = page.properties["Full Name"].title[0]?.text.content;
-      const email = page.properties["Email"].email;
-      return { name, email };
-    }).filter(entry => entry.name && entry.email);
+console.log("NOTION API RESPONSE:", JSON.stringify(data, null, 2));
 
-    // Remove duplicates
-    const unique = {};
-    names.forEach(entry => {
-      unique[entry.name + entry.email] = entry;
-    });
+let names = [];
+
+if (data.results && Array.isArray(data.results)) {
+  names = data.results.map(page => {
+    const name = page.properties["Full Name"].title[0]?.text?.content;
+    const email = page.properties["Email"].email;
+    return { name, email };
+  }).filter(entry => entry.name && entry.email);
+}
+
+// Remove duplicates
+const unique = {};
+names.forEach(entry => {
+  unique[entry.name + entry.email] = entry;
+});
+
+return {
+  statusCode: 200,
+  body: JSON.stringify(Object.values(unique)),
+};
 
     return {
       statusCode: 200,
