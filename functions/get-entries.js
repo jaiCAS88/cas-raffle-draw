@@ -8,7 +8,6 @@ exports.handler = async function(event, context) {
 
   try {
     const response = await fetch(url, {
-      console.log("NOTION API RESPONSE:", JSON.stringify(data, null, 2)),
       method: "POST",
       headers: {
         "Authorization": `Bearer ${NOTION_TOKEN}`,
@@ -19,33 +18,44 @@ exports.handler = async function(event, context) {
     });
 
     const data = await response.json();
-console.log("NOTION API RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("NOTION API RESPONSE:", JSON.stringify(data, null, 2));
 
-let names = [];
+    let names = [];
 
-if (data.results && Array.isArray(data.results)) {
-  names = data.results.map(page => {
-    const name = page.properties["Full Name"].title[0]?.text?.content;
-    const email = page.properties["Email"].email;
-    return { name, email };
-  }).filter(entry => entry.name && entry.email);
-}
+    if (data.results && Array.isArray(data.results)) {
+      names = data.results.map(page => {
+        let name = "";
+        let email = "";
 
-// Remove duplicates
-const unique = {};
-names.forEach(entry => {
-  unique[entry.name + entry.email] = entry;
-});
+        if (page.properties 
+          && page.properties["Full Name"] 
+          && page.properties["Full Name"].title 
+          && page.properties["Full Name"].title.length > 0 
+          && page.properties["Full Name"].title[0].text) {
+          name = page.properties["Full Name"].title[0].text.content;
+        }
 
-return {
-  statusCode: 200,
-  body: JSON.stringify(Object.values(unique)),
-};
+        if (page.properties 
+          && page.properties["Email"] 
+          && page.properties["Email"].email) {
+          email = page.properties["Email"].email;
+        }
+
+        return { name, email };
+      }).filter(entry => entry.name && entry.email);
+    }
+
+    // Remove duplicates
+    const unique = {};
+    names.forEach(entry => {
+      unique[entry.name + entry.email] = entry;
+    });
 
     return {
       statusCode: 200,
       body: JSON.stringify(Object.values(unique)),
     };
+
   } catch (error) {
     return {
       statusCode: 500,
