@@ -8,6 +8,7 @@ exports.handler = async function(event, context) {
 
   try {
     const response = await fetch(url, {
+      console.log("NOTION API RESPONSE:", JSON.stringify(data, null, 2)),
       method: "POST",
       headers: {
         "Authorization": `Bearer ${NOTION_TOKEN}`,
