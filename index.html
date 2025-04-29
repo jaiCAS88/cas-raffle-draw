@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAS Raffle Wall</title>
+  <title>Live Raffle Wall</title>
   <style>
     body {
       margin: 0;
@@ -150,4 +150,118 @@
       font-size: 1.3rem;
     }
   </style>
+<script>
+    const API_URL = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
+    const grid = document.getElementById("grid");
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalMessage = document.getElementById("modalMessage");
+    const loading = document.getElementById("loading");
+    const counter = document.getElementById("counter");
+    const winnerList = document.getElementById("winnerList");
+    const winnerNames = document.getElementById("winnerNames");
+
+    let drawnEmails = new Set();
+    let winners = [];
+    const maxWinners = 3;
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    function updateCounter() {
+      counter.textContent = `Winners Picked: ${winners.length}/${maxWinners}`;
+    }
+
+    function showWinners() {
+      winnerNames.innerHTML = winners.map(w => `<li>${w.name} (${w.company})</li>`).join('');
+      winnerList.style.display = "block";
+    }
+
+    function getWinChance() {
+      const remainingTiles = document.querySelectorAll(".tile").length;
+      const winnersLeft = maxWinners - winners.length;
+      if (remainingTiles === 0) return 0;
+      return Math.max(winnersLeft / remainingTiles, winners.length === 0 ? 0.3 : winners.length === 1 ? 0.5 : 0.8);
+    }
+
+    function showModal(isWinner, name) {
+      modal.style.display = "flex";
+      if (isWinner) {
+        modalTitle.textContent = "🎉 Winner!";
+        modalMessage.innerHTML = `Congratulations <strong>${name}</strong>!<br>You’ve just won a FREE registration to next year’s conference!<br>We’re so excited to see you back again — and now, it’s on us!<br><br>Let’s take a quick photo to celebrate! 📸`;
+      } else {
+        modalTitle.textContent = "Thanks for joining!";
+        modalMessage.innerHTML = `Not a winner this time... but we really appreciate you participating!<br>Let’s stay in touch — we’d still love to connect after the event.`;
+      }
+    }
+
+    function createTile(entry) {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.dataset.email = entry.email;
+
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = entry.name;
+
+      const company = document.createElement("div");
+      company.className = "company";
+      company.textContent = entry.company;
+
+      div.appendChild(name);
+      div.appendChild(company);
+
+      div.addEventListener("click", () => {
+        if (drawnEmails.has(entry.email) || winners.length >= maxWinners) return;
+
+        drawnEmails.add(entry.email);
+
+        const chance = getWinChance();
+        const isWinner = Math.random() < chance;
+
+        if (isWinner) {
+          winners.push(entry);
+        }
+
+        showModal(isWinner, entry.name);
+        div.remove();
+        updateCounter();
+
+        if (winners.length >= maxWinners) {
+          disableAllTiles();
+          showWinners();
+        }
+      });
+
+      grid.appendChild(div);
+    }
+
+    function disableAllTiles() {
+      document.querySelectorAll(".tile").forEach(tile => tile.style.pointerEvents = "none");
+    }
+
+    async function loadEntries() {
+      loading.style.display = "block";
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      data.forEach(entry => {
+        const exists = [...grid.children].some(div => div.dataset.email === entry.email);
+        if (!exists && !drawnEmails.has(entry.email)) {
+          createTile({
+            name: entry.name,
+            email: entry.email,
+            company: entry.company || ""
+          });
+        }
+      });
+      loading.style.display = "none";
+    }
+
+    window.onload = function () {
+      loadEntries();
+      setInterval(loadEntries, 5000);
+    }
+  </script>
 </head>
