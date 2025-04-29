@@ -42,7 +42,7 @@ exports.handler = async function(event, context) {
         }
 
         return { name, email };
-      }).filter(entry => entry.name && entry.email);
+      }); // no filtering
     }
 
     // Remove duplicates
