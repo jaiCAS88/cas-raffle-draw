@@ -13,49 +13,29 @@
       --gold: #ffd700;
       --text-light: #ccc;
     }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: var(--bg-color);
       color: white;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow: hidden;
     }
-
-    /* Logo placeholder (drop your file as logo.png in site root) */
     #logo {
       margin: 20px 0 0;
       width: 150px;
     }
-
     h1 {
       color: var(--primary);
       margin: 10px 0;
     }
-
     #counter {
       font-size: 1.2rem;
       color: var(--gold);
       margin-bottom: 10px;
     }
-
-    #loading {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 0.9rem;
-      color: var(--primary);
-      animation: fadeInOut 2s infinite;
-    }
-
-    @keyframes fadeInOut {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 1; }
-    }
-
     #grid {
       display: flex;
       flex-wrap: wrap;
@@ -67,125 +47,103 @@
       overflow-y: auto;
       margin-bottom: 20px;
     }
-
     .tile {
       background: var(--tile-bg);
       padding: 15px 20px;
       border-radius: 10px;
       text-align: center;
       cursor: pointer;
-      transition: transform 0.3s ease, background-color 0.3s ease;
       animation: popIn 0.4s ease;
       user-select: none;
     }
-
     @keyframes popIn {
       0% { transform: scale(0.5); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
-
     .tile:hover {
       transform: scale(1.05);
       background-color: #333;
     }
-
     .name {
       font-size: 1.2rem;
       color: var(--gold);
     }
-
     .company {
       font-size: 0.9rem;
       color: var(--text-light);
     }
-
-    /* Modal overlay */
+    /* Modal */
     #modal {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0,0,0,0.8);
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.8);
       display: none;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 30px;
-      z-index: 100;
+      z-index:100;
     }
-
     #modalContent {
-      background-color: var(--tile-bg);
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 500px;
+      background: var(--tile-bg);
+      padding:30px;
+      border-radius:12px;
+      max-width:400px;
+      text-align:center;
     }
-
     #modal h2 {
-      font-size: 2rem;
+      margin:0;
       color: var(--gold);
-      margin: 0;
+      font-size:1.8rem;
     }
-
     #modal p {
-      font-size: 1.1rem;
-      margin: 20px 0;
+      margin:20px 0;
       white-space: pre-wrap;
+      font-size:1rem;
     }
-
     #modal button {
-      margin-top: 20px;
-      background-color: var(--secondary);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
+      background: var(--secondary);
+      border:none;
+      color:white;
+      padding:8px 16px;
+      border-radius:6px;
+      cursor:pointer;
     }
-
-    /* Final winners list */
+    /* Final Winners */
     #winnerList {
-      margin-top: 40px;
-      padding: 30px;
-      background-color: var(--tile-bg);
-      border-radius: 15px;
-      border: 2px solid var(--gold);
-      box-shadow: 0 0 15px var(--gold)88;
-      max-width: 700px;
-      text-align: center;
-      display: none;
+      margin-top:30px;
+      padding:20px;
+      background: var(--tile-bg);
+      border:2px solid var(--gold);
+      box-shadow:0 0 12px var(--gold)88;
+      border-radius:12px;
+      max-width:600px;
+      text-align:center;
+      display:none;
       animation: popWinner 0.6s ease forwards;
     }
-
     @keyframes popWinner {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
     }
-
     #winnerList h3 {
-      margin-bottom: 15px;
-      font-size: 2rem;
+      margin-bottom:12px;
       color: var(--gold);
+      font-size:1.6rem;
     }
-
     #winnerList ul {
-      list-style: none;
-      padding: 0;
-      font-size: 1.3rem;
-      margin: 0;
+      list-style:none;
+      padding:0;
+      margin:0;
+      font-size:1rem;
     }
   </style>
 </head>
 <body>
 
-  <!-- Logo (replace logo.png with your actual file) -->
-  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Logo" />
-
+  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Logo">
   <h1>Live Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
-  <div id="loading">Updating…</div>
   <div id="grid"></div>
 
-  <!-- Winner/Non-Winner Modal -->
   <div id="modal">
     <div id="modalContent">
       <h2></h2>
@@ -194,7 +152,6 @@
     </div>
   </div>
 
-  <!-- Final Winners List -->
   <div id="winnerList">
     <h3>Final Winners 🏆</h3>
     <ul></ul>
@@ -205,103 +162,84 @@
     const MAX_WINNERS = 2;
     let winners = [];
 
+    // load new names without duplicates
     async function loadEntries() {
       try {
-        const res  = await fetch(API_URL);
+        const res = await fetch(API_URL);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-
-        const grid     = document.getElementById("grid");
-        const existing = new Set(
-          Array.from(grid.children).map(tile => tile.dataset.key)
-        );
-
-        data.forEach(person => {
-          const key = person.name + "|" + person.company;
+        const grid = document.getElementById("grid");
+        const existing = new Set([...grid.children].map(c => c.dataset.key));
+        data.forEach(p => {
+          const key = p.name + "|" + p.company;
           if (!existing.has(key)) {
-            const tile = document.createElement("div");
-            tile.className   = "tile";
-            tile.dataset.key = key;
-            tile.innerHTML   = `
-              <div class="name">${person.name}</div>
-              <div class="company">${person.company}</div>
-            `;
-            tile.addEventListener("click", () => handleClick(person, tile));
-            grid.appendChild(tile);
+            const el = document.createElement("div");
+            el.className = "tile";
+            el.dataset.key = key;
+            el.innerHTML = `<div class="name">${p.name}</div><div class="company">${p.company}</div>`;
+            el.addEventListener("click", () => handleClick(p, el));
+            grid.appendChild(el);
           }
         });
-
-        document.getElementById(
-          "counter"
-        ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-
-      } catch (err) {
-        console.error("Error loading entries:", err);
+        document.getElementById("counter").textContent =
+          `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+      } catch(e) {
+        console.error("loadEntries error:", e);
       }
     }
 
-function handleClick(person, tile) {
-  if (winners.length >= MAX_WINNERS) return;
-
-  // Count entries *before* removal
-  const grid                = document.getElementById("grid");
-  const totalEntriesBefore  = grid.children.length;
-  const winnersLeft         = MAX_WINNERS - winners.length;
-
-  // Base win odds by how many winners so far
-  const baseOdds = winners.length === 0
-    ? 0.3
-    : winners.length === 1
-      ? 0.5
-      : 0.8;
-
-  // Decide win: if we have fewer entries than or equal to winnersLeft, force win
-  const didWin = totalEntriesBefore <= winnersLeft
-    ? true
-    : Math.random() < baseOdds;
-
-  // Remove the tile no matter the outcome
-  tile.remove();
-
-  if (didWin) {
-    winners.push(person);
-    showModal(
-      "🎉 Congratulations! 🎉",
-      `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
-    );
-  } else {
-    showModal(
-      "Thanks for joining!",
-      `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
-    );
-  }
-
-  // Update counter and check for final winners
-  document.getElementById(
-    "counter"
-  ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-
-  if (winners.length >= MAX_WINNERS) {
-    showFinalWinners();
-  }
-}
-
-
-    function showFinalWinners() {
-      const listContainer = document.getElementById("winnerList");
-      const ul = listContainer.querySelector("ul");
-      ul.innerHTML = winners
-        .map(w => `<li>${w.name} — ${w.company}</li>`)
-        .join("");
-      listContainer.style.display = "block";
-      listContainer.scrollIntoView({ behavior: "smooth" });
+    // click logic with dynamic odds + removal + modal
+    function handleClick(person, tile) {
+      if (winners.length >= MAX_WINNERS) return;
+      const grid = document.getElementById("grid");
+      const totalBefore = grid.children.length;
+      const leftToWin = MAX_WINNERS - winners.length;
+      const baseOdds = winners.length===0?0.3:winners.length===1?0.5:0.8;
+      const forceWin = totalBefore <= leftToWin;
+      const didWin = forceWin || Math.random()<baseOdds;
+      tile.remove();
+      if (didWin) {
+        winners.push(person);
+        showModal(
+          "🎉 Congratulations! 🎉",
+          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+        );
+      } else {
+        showModal(
+          "Thanks for joining!",
+          `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
+        );
+      }
+      document.getElementById("counter").textContent =
+        `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+      if (winners.length>=MAX_WINNERS) showFinalWinners();
     }
 
-    window.addEventListener("load", () => {
-      loadEntries();
-      // If you want continuous polling, uncomment next line:
-      // setInterval(loadEntries, 5000);
+    // show popup
+    function showModal(title, msg) {
+      const m = document.getElementById("modal");
+      m.querySelector("h2").textContent = title;
+      m.querySelector("p").textContent  = msg;
+      m.style.display = "flex";
+    }
+    // close popup
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelector("#modal button")
+        .addEventListener("click", ()=> {
+          document.getElementById("modal").style.display="none";
+        });
     });
+
+    // show final winners
+    function showFinalWinners() {
+      const winBox = document.getElementById("winnerList");
+      const ul = winBox.querySelector("ul");
+      ul.innerHTML = winners.map(w=>`<li>${w.name} — ${w.company}</li>`).join("");
+      winBox.style.display = "block";
+      winBox.scrollIntoView({ behavior:"smooth" });
+    }
+
+    window.addEventListener("load", ()=>{ loadEntries(); /* setInterval(loadEntries,5000); */ });
   </script>
 </body>
 </html>
