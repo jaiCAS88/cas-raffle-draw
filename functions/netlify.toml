@@ -1,0 +1,6 @@
+[build]
+  publish = "."            # your site is just index.html in the root
+  functions = "functions"  # points Netlify at your functions folder
+
+[dev]
+  functions = "functions"  # for local netlify dev, if you use it
