@@ -203,18 +203,36 @@
 
     function disableAllTiles() { document.querySelectorAll(".tile").forEach(tile => tile.style.pointerEvents = "none"); }
 
-    async function loadEntries() {
-      loading.style.display = "block";
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      data.forEach(entry => {
-        const exists = [...grid.children].some(div => div.dataset.email === entry.email);
-        if (!exists && !drawnEmails.has(entry.email)) {
-          createTile({ name: entry.name, email: entry.email, company: entry.company || "" });
-        }
-      });
-      loading.style.display = "none";
-    }
+async function loadEntries() {
+  try {
+    const res  = await fetch(API_URL);
+    if (!res.ok) throw new Error("Network response was not ok");
+    const data = await res.json();
+
+    // ① Clear out old tiles:
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    // ② Re-populate
+    data.forEach(person => {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      tile.innerHTML = `
+        <div class="name">${person.name}</div>
+        <div class="company">${person.company}</div>
+      `;
+      tile.addEventListener("click", () => handleClick(person, tile));
+      grid.appendChild(tile);
+    });
+
+    // ③ Update winner counter (if you have one)
+    updateCounter();
+
+  } catch (err) {
+    console.error("Error loading entries:", err);
+    // Optionally show an error in the UI
+  }
+}
 
     window.onload = () => { loadEntries(); setInterval(loadEntries, 5000); };
   </script>
