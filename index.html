@@ -178,7 +178,7 @@
 <body>
 
   <!-- Logo (replace logo.png with your actual file) -->
-  <img id="logo" src="logo.png" alt="Logo" />
+  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Logo" />
 
   <h1>Live Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
@@ -240,52 +240,52 @@
       }
     }
 
-    function handleClick(person, tile) {
-      if (winners.length >= MAX_WINNERS) return;
-      tile.remove();
+function handleClick(person, tile) {
+  if (winners.length >= MAX_WINNERS) return;
 
-      // dynamic odds
-      const namesLeft   = document.getElementById("grid").children.length + 1;
-      const winnersLeft = MAX_WINNERS - winners.length;
-      const baseOdds    = winners.length === 0 ? 0.3 :
-                          winners.length === 1 ? 0.5 : 0.8;
-      const ratioOdds   = winnersLeft / namesLeft;
-      const winChance   = Math.max(baseOdds, ratioOdds);
+  // Count entries *before* removal
+  const grid                = document.getElementById("grid");
+  const totalEntriesBefore  = grid.children.length;
+  const winnersLeft         = MAX_WINNERS - winners.length;
 
-      if (Math.random() < winChance) {
-        winners.push(person);
-        showModal(
-          "🎉 Congratulations! 🎉",
-          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
-        );
-      } else {
-        showModal(
-          "Thanks for joining!",
-          `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
-        );
-      }
+  // Base win odds by how many winners so far
+  const baseOdds = winners.length === 0
+    ? 0.3
+    : winners.length === 1
+      ? 0.5
+      : 0.8;
 
-      document.getElementById(
-        "counter"
-      ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+  // Decide win: if we have fewer entries than or equal to winnersLeft, force win
+  const didWin = totalEntriesBefore <= winnersLeft
+    ? true
+    : Math.random() < baseOdds;
 
-      if (winners.length >= MAX_WINNERS) {
-        showFinalWinners();
-      }
-    }
+  // Remove the tile no matter the outcome
+  tile.remove();
 
-    function showModal(title, message) {
-      const modal        = document.getElementById("modal");
-      modal.querySelector("h2").textContent = title;
-      modal.querySelector("p").textContent  = message;
-      modal.style.display                   = "flex";
-    }
+  if (didWin) {
+    winners.push(person);
+    showModal(
+      "🎉 Congratulations! 🎉",
+      `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+    );
+  } else {
+    showModal(
+      "Thanks for joining!",
+      `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
+    );
+  }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelector("#modal button").addEventListener("click", () => {
-        document.getElementById("modal").style.display = "none";
-      });
-    });
+  // Update counter and check for final winners
+  document.getElementById(
+    "counter"
+  ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+
+  if (winners.length >= MAX_WINNERS) {
+    showFinalWinners();
+  }
+}
+
 
     function showFinalWinners() {
       const listContainer = document.getElementById("winnerList");
