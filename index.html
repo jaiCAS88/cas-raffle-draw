@@ -209,30 +209,36 @@ async function loadEntries() {
     if (!res.ok) throw new Error("Network response was not ok");
     const data = await res.json();
 
-    // ① Clear out old tiles:
     const grid = document.getElementById("grid");
-    grid.innerHTML = "";
+    // Build a Set of keys for what’s already rendered
+    const existing = new Set(
+      Array.from(grid.children).map(tile => tile.dataset.key)
+    );
 
-    // ② Re-populate
     data.forEach(person => {
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      tile.innerHTML = `
-        <div class="name">${person.name}</div>
-        <div class="company">${person.company}</div>
-      `;
-      tile.addEventListener("click", () => handleClick(person, tile));
-      grid.appendChild(tile);
+      // Create a unique key per person
+      const key = person.name + "|" + person.company;
+      if (!existing.has(key)) {
+        // Only for brand-new entries…
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.dataset.key = key;              // store the key
+        tile.innerHTML = `
+          <div class="name">${person.name}</div>
+          <div class="company">${person.company}</div>
+        `;
+        tile.addEventListener("click", () => handleClick(person, tile));
+        grid.appendChild(tile);
+        // pop-in animation will run automatically via your CSS @keyframes popIn
+      }
     });
 
-    // ③ Update winner counter (if you have one)
     updateCounter();
-
   } catch (err) {
     console.error("Error loading entries:", err);
-    // Optionally show an error in the UI
   }
 }
+
 
     window.onload = () => { loadEntries(); setInterval(loadEntries, 5000); };
   </script>
