@@ -78,7 +78,7 @@
       font-size: 0.9rem; color: #888dc5;
       animation: fadeInOut 2s infinite;
     }
-    @keyframes fadeInOut {0%,100%{opacity:0.2;}50%{opacity:1;}}
+    @keyframes fadeInOut {0%,100%{opacity:0.2;}50%{opacity:1;} }
 
     #winnerList {
       margin-top: 40px; padding: 30px; background-color: #2a2a2a;
@@ -97,7 +97,7 @@
 <body>
   <h1>🎟️ Live Raffle Participants</h1>
   <div id="loading">🔄 Updating...</div>
-  <div id="counter">Winners Picked: 0/3</div>
+  <div id="counter">Winners Picked: 0/2</div>
   <div id="grid"></div>
 
   <div id="modal">
@@ -126,7 +126,7 @@
 
     let drawnEmails = new Set();
     let winners = [];
-    const maxWinners = 3;
+    const maxWinners = 2;
 
     function closeModal() { modal.style.display = "none"; }
     function updateCounter() { counter.textContent = `Winners Picked: ${winners.length}/${maxWinners}`; }
