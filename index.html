@@ -191,31 +191,48 @@
     }
 
     // click logic with dynamic odds + removal + modal
-    function handleClick(person, tile) {
-      if (winners.length >= MAX_WINNERS) return;
-      const grid = document.getElementById("grid");
-      const totalBefore = grid.children.length;
-      const leftToWin = MAX_WINNERS - winners.length;
-      const baseOdds = winners.length===0?0.3:winners.length===1?0.5:0.8;
-      const forceWin = totalBefore <= leftToWin;
-      const didWin = forceWin || Math.random()<baseOdds;
-      tile.remove();
-      if (didWin) {
-        winners.push(person);
-        showModal(
-          "🎉 Congratulations! 🎉",
-          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
-        );
-      } else {
-        showModal(
-          "Thanks for joining!",
-          `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
-        );
-      }
-      document.getElementById("counter").textContent =
-        `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-      if (winners.length>=MAX_WINNERS) showFinalWinners();
-    }
+function handleClick(person, tile) {
+  if (winners.length >= MAX_WINNERS) return;
+
+  // 1) How many names are still available (before removing this one)
+  const grid          = document.getElementById("grid");
+  const totalBefore   = grid.children.length;
+  const winnersLeft   = MAX_WINNERS - winners.length;
+
+  // 2) Compute dynamic win chance: winnersLeft / totalBefore
+  //    → e.g. 2/200 = 1%, later 1/50 = 2%, and when equal → 100%
+  const winChance = winnersLeft / totalBefore;
+
+  // 3) Determine result
+  const didWin = Math.random() < winChance;
+
+  // 4) Remove the tile immediately (win or lose)
+  tile.remove();
+
+  // 5) Show modal and record if they won
+  if (didWin) {
+    winners.push(person);
+    showModal(
+      "🎉 Congratulations! 🎉",
+      `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+    );
+  } else {
+    showModal(
+      "Thanks for joining!",
+      `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
+    );
+  }
+
+  // 6) Update the counter
+  document.getElementById(
+    "counter"
+  ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+
+  // 7) If we’ve reached the limit, show the final winners
+  if (winners.length >= MAX_WINNERS) {
+    showFinalWinners();
+  }
+}
 
     // show popup
     function showModal(title, msg) {
