@@ -21,7 +21,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      overflow: auto; /*allow page scroll */
     }
     #logo {
       margin: 20px 0 0;
@@ -46,6 +46,8 @@
       flex-grow: 1;
       overflow-y: auto;
       margin-bottom: 20px;
+      max-height: calc(100vh - 200px); /* leave space for header, modals, etc. */
+      overflow-y: auto;               /* enable vertical scroll */
     }
     .tile {
       background: var(--tile-bg);
