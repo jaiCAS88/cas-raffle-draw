@@ -1,171 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Bridge the Gap X CAS Raffle Wall</title>
   <style>
     :root {
-      --bg-color: #1a1a1a;
-      --tile-bg: #2a2a2a;
-      --primary: #888dc5;
-      --secondary: #5247e0;
-      --gold: #ffd700;
-      --text-light: #ccc;
+      --bg: #1a1a1a; --tile: #2a2a2a;
+      --p: #888dc5; --s: #5247e0; --g: #ffd700; --lt: #ccc;
     }
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg-color);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: auto;
+      margin:0; font-family:'Segoe UI',sans-serif;
+      background:var(--bg); color:#fff;
+      display:flex; flex-direction:column; align-items:center;
+      overflow:auto;
     }
-    h1 {
-      color: var(--primary);
-      margin: 20px 0 5px;
-    }
-    #counter {
-      font-size: 1.1rem;
-      color: var(--gold);
-      margin-bottom: 4px;
-    }
-    #winnerBar {
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-bottom: 8px;
-      max-width: 90vw;
-      text-align: center;
-    }
+    h1 { color:var(--p); margin:20px 0 5px; }
+    #counter { color:var(--g); margin-bottom:4px; }
+    #winnerBar { color:var(--lt); margin-bottom:8px; text-align:center; }
     #winnerBar span {
-      background: var(--secondary);
-      color: white;
-      padding: 3px 8px;
-      margin: 0 4px;
-      border-radius: 4px;
-      display: inline-block;
+      background:var(--s); color:#fff;
+      padding:2px 6px; margin:0 3px; border-radius:3px;
+      display:inline-block;
     }
     #refreshButton {
-      background: var(--secondary);
-      border: none;
-      color: white;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 12px;
+      background:var(--s); border:none; color:#fff;
+      padding:6px 12px; border-radius:5px;
+      cursor:pointer; margin-bottom:12px;
     }
     #grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      padding: 10px 20px;
-      max-width: 90vw;
-      flex-grow: 1;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      max-height: calc(100vh - 260px);
+      display:flex; flex-wrap:wrap; justify-content:center;
+      gap:12px; padding:10px 20px;
+      max-width:90vw; flex-grow:1; overflow-y:auto;
+      max-height:calc(100vh - 260px); margin-bottom:20px;
     }
     .tile {
-      background: var(--tile-bg);
-      padding: 12px 16px;
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      animation: popIn 0.3s ease;
-      user-select: none;
+      background:var(--tile); padding:12px 16px;
+      border-radius:8px; text-align:center; cursor:pointer;
+      animation:popIn .3s ease; user-select:none;
     }
-    @keyframes popIn {
-      from { transform: scale(0.5); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
-    }
-    .tile:hover {
-      transform: scale(1.03);
-      background-color: #333;
-    }
-    .name {
-      font-size: 1rem;
-      color: var(--gold);
-    }
-    .company {
-      font-size: 0.8rem;
-      color: var(--text-light);
-    }
-    /* Modal */
+    @keyframes popIn { from{transform:scale(.5);opacity:0}
+                       to{transform:scale(1);opacity:1} }
+    .tile:hover { transform:scale(1.03); background:#333; }
+    .name { color:var(--g); font-size:1rem; }
+    .company { color:var(--lt); font-size:.8rem; }
     #modal {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      align-items: center; justify-content: center;
-      z-index: 100;
+      position:fixed; top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.8); display:none;
+      align-items:center; justify-content:center;
+      z-index:100;
     }
     #modalContent {
-      background: var(--tile-bg);
-      padding: 24px;
-      border-radius: 10px;
-      max-width: 360px;
-      text-align: center;
+      background:var(--tile); padding:24px; border-radius:10px;
+      max-width:360px; text-align:center;
     }
-    #modal h2 {
-      margin: 0 0 12px;
-      color: var(--gold);
-      font-size: 1.6rem;
-    }
+    #modal h2 { margin:0 0 12px; color:var(--g); font-size:1.6rem; }
     #modal p {
-      margin: 12px 0;
-      white-space: pre-wrap;
-      font-size: 0.95rem;
-      color: var(--text-light);
+      margin:12px 0; color:var(--lt);
+      white-space:pre-wrap; font-size:.95rem;
     }
     #modal button {
-      background: var(--secondary);
-      border: none;
-      color: white;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
+      background:var(--s); border:none; color:#fff;
+      padding:6px 14px; border-radius:6px; cursor:pointer;
     }
-    /* Final Winners */
     #winnerList {
-      margin-top: 24px;
-      padding: 16px;
-      background: var(--tile-bg);
-      border: 2px solid var(--gold);
-      box-shadow: 0 0 12px var(--gold)88;
-      border-radius: 10px;
-      max-width: 600px;
-      text-align: center;
-      display: none;
-      animation: popWinner 0.5s ease forwards;
+      display:none; margin-top:24px; padding:16px;
+      background:var(--tile); border:2px solid var(--g);
+      box-shadow:0 0 12px var(--g)88; border-radius:10px;
+      max-width:600px; text-align:center;
+      animation:popWinner .5s ease forwards;
     }
-    @keyframes popWinner {
-      from { transform: scale(0.5); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
-    }
-    #winnerList h3 {
-      margin-bottom: 8px;
-      color: var(--gold);
-      font-size: 1.4rem;
-    }
-    #winnerList ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      font-size: 0.9rem;
-      color: var(--text-light);
-    }
-    #winnerList li { margin: 4px 0; }
+    @keyframes popWinner { from{transform:scale(.5);opacity:0}
+                           to{transform:scale(1);opacity:1} }
+    #winnerList h3 { margin-bottom:8px; color:var(--g); font-size:1.4rem; }
+    #winnerList ul { list-style:none; padding:0; color:var(--lt); font-size:.9rem; }
+    #winnerList li { margin:4px 0; }
   </style>
 </head>
 <body>
+
   <h1>Bridge the Gap X CAS Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
   <div id="winnerBar"></div>
   <button id="refreshButton">Update Entries</button>
   <div id="grid"></div>
 
+  <!-- Modal -->
   <div id="modal">
     <div id="modalContent">
       <h2></h2>
@@ -174,6 +94,7 @@
     </div>
   </div>
 
+  <!-- Final Winners -->
   <div id="winnerList">
     <h3>Final Winners 🏆</h3>
     <ul></ul>
@@ -184,98 +105,121 @@
     const MAX_WINNERS = 2;
     let winners = [], removedKeys = new Set(), clickCounter = 0;
 
+    const refreshBtn = document.getElementById("refreshButton");
+    const originalText = refreshBtn.textContent;
+
     async function loadEntries() {
       try {
-        // cache-bust
-        const res = await fetch(API_URL + "?_=" + Date.now());
+        // show loading
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = "Loading…";
+        // fetch all entries
+        const res = await fetch(`${API_URL}?_=${Date.now()}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
 
-        // dedupe by email & skip removed
+        // dedupe & skip removed
         const seen = new Set();
         const data = raw.filter(e => {
-          if (seen.has(e.email) || removedKeys.has(e.name + "|" + e.company)) return false;
+          const key = e.name + "|" + e.company;
+          if (seen.has(e.email) || removedKeys.has(key)) return false;
           seen.add(e.email);
           return true;
         });
 
-        const grid    = document.getElementById("grid");
-        const existing= new Set(Array.from(grid.children).map(c=>c.dataset.key));
-
+        // clear & render
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
         data.forEach(p => {
           const key = p.name + "|" + p.company;
-          if (!existing.has(key)) {
-            const el = document.createElement("div");
-            el.className   = "tile";
-            el.dataset.key = key;
-            el.innerHTML   = `<div class="name">${p.name}</div><div class="company">${p.company}</div>`;
-            el.addEventListener("click", ()=>handleClick(p, el));
-            grid.appendChild(el);
-          }
+          const el = document.createElement("div");
+          el.className   = "tile";
+          el.dataset.key = key;
+          el.innerHTML   =
+            `<div class="name">${p.name}</div>` +
+            `<div class="company">${p.company}</div>`;
+          el.addEventListener("click", ()=> handleClick(p, el));
+          grid.appendChild(el);
         });
-        document.getElementById("counter").textContent=
+
+        // update counter
+        document.getElementById("counter").textContent =
           `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-      } catch(e){ console.error("loadEntries error:", e) }
+      } catch (e) {
+        console.error("loadEntries error:", e);
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = originalText;
+      }
     }
 
     function handleClick(person, tile) {
-      if (winners.length>=MAX_WINNERS) return;
+      if (winners.length >= MAX_WINNERS) return;
       clickCounter++;
 
-      // confirm presence
+      // confirm attendance
       const present = confirm("Is this person here at the booth?");
-      // odds
+      // compute odds
       const grid = document.getElementById("grid");
       const totalBefore = grid.children.length;
       const winnersLeft = MAX_WINNERS - winners.length;
       let winChance = winnersLeft / totalBefore;
       if (present) winChance = Math.min(1, winChance + 0.2);
       const autoWin = (clickCounter === 30);
-      const didWin = autoWin || (Math.random() < winChance);
+      const didWin  = autoWin || Math.random() < winChance;
 
-      // remove tile
+      // remove tile & record
       const key = person.name + "|" + person.company;
       removedKeys.add(key);
       tile.remove();
 
-      // show modal + record
+      // show modal & update winners
       if (didWin) {
         winners.push(person);
         document.getElementById("winnerBar").innerHTML =
           winners.map(w=>`<span>${w.name}</span>`).join("");
-        showModal("🎉 Congratulations! 🎉",
-          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo! 📸`);
+        showModal(
+          "🎉 Congratulations! 🎉",
+          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+        );
       } else {
-        showModal("Thanks for joining!",
-          `Not a winner this time... but we appreciate you participating!`);
+        showModal(
+          "Thanks for joining!",
+          `Not a winner this time... but we appreciate you!`
+        );
       }
 
-      document.getElementById("counter").textContent=
+      // update counter & final list
+      document.getElementById("counter").textContent =
         `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-      if (winners.length>=MAX_WINNERS) showFinalWinners();
+      if (winners.length >= MAX_WINNERS) showFinalWinners();
     }
 
-    function showModal(t,m){
-      const mEl = document.getElementById("modal");
-      mEl.querySelector("h2").textContent = t;
-      mEl.querySelector("p").textContent  = m;
-      mEl.style.display = "flex";
+    function showModal(title, msg) {
+      const m = document.getElementById("modal");
+      m.querySelector("h2").textContent = title;
+      m.querySelector("p").textContent  = msg;
+      m.style.display                   = "flex";
     }
-    document.addEventListener("DOMContentLoaded", ()=>{
+    document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#modal button")
-        .addEventListener("click", ()=>document.getElementById("modal").style.display="none");
-      document.getElementById("refreshButton")
-        .addEventListener("click", loadEntries);
+        .addEventListener("click", ()=> {
+          document.getElementById("modal").style.display = "none";
+        });
+      refreshBtn.addEventListener("click", loadEntries);
     });
 
-    function showFinalWinners(){
+    function showFinalWinners() {
       const box = document.getElementById("winnerList"),
             ul  = box.querySelector("ul");
-      ul.innerHTML = winners.map(w=>`<li>${w.name} — ${w.company}</li>`).join("");
-      box.style.display="block";
-      box.scrollIntoView({behavior:"smooth"});
+      ul.innerHTML = winners.map(w=>
+        `<li>${w.name} — ${w.company}</li>`
+      ).join("");
+      box.style.display = "block";
+      box.scrollIntoView({ behavior: "smooth" });
     }
 
+    // initial load
     window.addEventListener("load", loadEntries);
   </script>
 </body>
