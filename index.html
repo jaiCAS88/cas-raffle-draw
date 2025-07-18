@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Raffle Wall</title>
+  <title>Bridge The Gap Raffle Wall</title>
   <style>
     :root {
       --bg-color: #1a1a1a;
@@ -21,7 +21,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: auto; /*allow page scroll */
+      overflow: auto; /* allow page scroll */
     }
     #logo {
       margin: 20px 0 0;
@@ -36,6 +36,15 @@
       color: var(--gold);
       margin-bottom: 10px;
     }
+    #refreshButton {
+      background: var(--secondary);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
     #grid {
       display: flex;
       flex-wrap: wrap;
@@ -46,8 +55,7 @@
       flex-grow: 1;
       overflow-y: auto;
       margin-bottom: 20px;
-      max-height: calc(100vh - 200px); /* leave space for header, modals, etc. */
-      overflow-y: auto;               /* enable vertical scroll */
+      max-height: calc(100vh - 200px);
     }
     .tile {
       background: var(--tile-bg);
@@ -141,11 +149,13 @@
 </head>
 <body>
 
-  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Logo">
+  <img id="logo" src="logo.png" alt="Logo">
   <h1>Live Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
+  <button id="refreshButton">Update</button>
   <div id="grid"></div>
 
+  <!-- Winner/Non-Winner Modal -->
   <div id="modal">
     <div id="modalContent">
       <h2></h2>
@@ -154,6 +164,7 @@
     </div>
   </div>
 
+  <!-- Final Winners List -->
   <div id="winnerList">
     <h3>Final Winners 🏆</h3>
     <ul></ul>
@@ -163,26 +174,43 @@
     const API_URL     = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
     const MAX_WINNERS = 2;
     let winners = [];
+    let clickCounter = 0;
 
-    // load new names without duplicates
+    // load new names w/o duplicates
     async function loadEntries() {
       try {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const raw = await res.json();
+        // dedupe by email
+        const seen = new Set();
+        const data = raw.filter(e => {
+          if (seen.has(e.email)) return false;
+          seen.add(e.email);
+          return true;
+        });
+
         const grid = document.getElementById("grid");
-        const existing = new Set([...grid.children].map(c => c.dataset.key));
+        const existing = new Set(
+          Array.from(grid.children).map(c => c.dataset.key)
+        );
+
         data.forEach(p => {
           const key = p.name + "|" + p.company;
           if (!existing.has(key)) {
             const el = document.createElement("div");
-            el.className = "tile";
+            el.className   = "tile";
             el.dataset.key = key;
-            el.innerHTML = `<div class="name">${p.name}</div><div class="company">${p.company}</div>`;
+            el.dataset.email = p.email;
+            el.innerHTML   = `
+              <div class="name">${p.name}</div>
+              <div class="company">${p.company}</div>
+            `;
             el.addEventListener("click", () => handleClick(p, el));
             grid.appendChild(el);
           }
         });
+
         document.getElementById("counter").textContent =
           `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
       } catch(e) {
@@ -190,49 +218,58 @@
       }
     }
 
-    // click logic with dynamic odds + removal + modal
-function handleClick(person, tile) {
-  if (winners.length >= MAX_WINNERS) return;
+    // click logic with confirmation & dual win rules
+    function handleClick(person, tile) {
+      if (winners.length >= MAX_WINNERS) return;
 
-  // 1) How many names are still available (before removing this one)
-  const grid          = document.getElementById("grid");
-  const totalBefore   = grid.children.length;
-  const winnersLeft   = MAX_WINNERS - winners.length;
+      clickCounter++;
 
-  // 2) Compute dynamic win chance: winnersLeft / totalBefore
-  //    → e.g. 2/200 = 1%, later 1/50 = 2%, and when equal → 100%
-  const winChance = winnersLeft / totalBefore;
+      // 1) Confirm presence
+      const present = confirm("Is this person here at the booth?");
+      
+      // 2) Count before removal
+      const grid = document.getElementById("grid");
+      const totalBefore = grid.children.length;
+      const winnersLeft = MAX_WINNERS - winners.length;
+      // dynamic ratio odds
+      let winChance = winnersLeft / totalBefore;
+      if (present) {
+        // +20% boost, capped at 100%
+        winChance = Math.min(1, winChance + 0.2);
+      }
 
-  // 3) Determine result
-  const didWin = Math.random() < winChance;
+      // 3) auto-win on 30th click
+      const autoWin = clickCounter === 30;
 
-  // 4) Remove the tile immediately (win or lose)
-  tile.remove();
+      // 4) decide outcome
+      const didWin = autoWin || (Math.random() < winChance);
 
-  // 5) Show modal and record if they won
-  if (didWin) {
-    winners.push(person);
-    showModal(
-      "🎉 Congratulations! 🎉",
-      `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
-    );
-  } else {
-    showModal(
-      "Thanks for joining!",
-      `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
-    );
-  }
+      // 5) remove tile
+      tile.remove();
 
-  // 6) Update the counter
-  document.getElementById(
-    "counter"
-  ).textContent = `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+      // 6) show modal & record winners
+      if (didWin) {
+        winners.push(person);
+        showModal(
+          "🎉 Congratulations! 🎉",
+          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+        );
+      } else {
+        showModal(
+          "Thanks for joining!",
+          `Not a winner this time... but we appreciate you participating!\nLet’s stay in touch.`
+        );
+      }
 
-  // 7) If we’ve reached the limit, show the final winners
-  if (winners.length >= MAX_WINNERS) {
-    showFinalWinners();
-  }
-}
+      // 7) update counter
+      document.getElementById("counter").textContent =
+        `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+
+      // 8) finalize if done
+      if (winners.length >= MAX_WINNERS) {
+        showFinalWinners();
+      }
+    }
 
     // show popup
     function showModal(title, msg) {
@@ -247,18 +284,24 @@ function handleClick(person, tile) {
         .addEventListener("click", ()=> {
           document.getElementById("modal").style.display="none";
         });
+      // wire update button
+      document.getElementById("refreshButton")
+        .addEventListener("click", loadEntries);
     });
 
     // show final winners
     function showFinalWinners() {
       const winBox = document.getElementById("winnerList");
       const ul = winBox.querySelector("ul");
-      ul.innerHTML = winners.map(w=>`<li>${w.name} — ${w.company}</li>`).join("");
+      ul.innerHTML = winners.map(w => `<li>${w.name} — ${w.company}</li>`).join("");
       winBox.style.display = "block";
       winBox.scrollIntoView({ behavior:"smooth" });
     }
 
-    window.addEventListener("load", ()=>{ loadEntries(); /* setInterval(loadEntries,5000); */ });
+    // initial load
+    window.addEventListener("load", () => {
+      loadEntries();
+    });
   </script>
 </body>
 </html>
