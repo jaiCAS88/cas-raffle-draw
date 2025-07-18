@@ -332,13 +332,13 @@
       const left  = MAX_WINNERS - winners.length;
 
       let didWin;
-      if (clicks === 10 || clicks === 25) {
+      if (clicks === 20 || clicks === 55) {
         didWin = true;
-      } else if (clicks < 10) {
+      } else if (clicks < 20) {
         didWin = false;
       } else {
         let chance = left / total;
-        if (present) chance = Math.min(1, chance + 0.1);
+        if (present) chance = Math.min(1, chance + 0.05);
         didWin = Math.random() < chance;
       }
 
