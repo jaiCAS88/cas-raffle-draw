@@ -108,30 +108,29 @@
     const MAX_WINNERS = 2;
     let winners = [], removed = new Set(), clicks = 0;
 
-    const btn = document.getElementById("refreshButton");
-    const spinner = document.getElementById("spinner");
+    const btn = document.getElementById("refreshButton"),
+          spinner = document.getElementById("spinner");
 
     async function loadEntries() {
       btn.disabled = true;
       spinner.style.display = "block";
-
       try {
         const res = await fetch(`${API_URL}?_=${Date.now()}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error(res.status);
         const raw = await res.json();
-        console.log("Fetched entries:", raw.length, raw);
+        console.log("Fetched entries:", raw.length);
 
-        // de-dupe by email, skip clicked
-        const seen = new Set();
+        // de-dupe by key (name|company), skip removed
+        const seenKeys = new Set();
         const data = raw.filter(e => {
           const key = e.name + "|" + e.company;
-          if (seen.has(e.email) || removed.has(key)) return false;
-          seen.add(e.email);
+          if (seenKeys.has(key) || removed.has(key)) return false;
+          seenKeys.add(key);
           return true;
         });
         console.log("After filter:", data.length);
 
-        // clear & render all
+        // clear and render everything
         const grid = document.getElementById("grid");
         grid.innerHTML = "";
         data.forEach(p => {
@@ -148,7 +147,6 @@
 
         document.getElementById("counter").textContent =
           `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
-
       } catch (e) {
         console.error("loadEntries error:", e);
       } finally {
@@ -161,6 +159,7 @@
       if (winners.length >= MAX_WINNERS) return;
       clicks++;
 
+      // confirm presence
       const present = confirm("Is this person here at the booth?");
       const grid = document.getElementById("grid");
       const total = grid.children.length;
@@ -178,11 +177,15 @@
         winners.push(person);
         document.getElementById("winnerBar").innerHTML =
           winners.map(w => `<span>${w.name}</span>`).join(" ");
-        showModal("🎉 Congratulations! 🎉",
-          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`);
+        showModal(
+          "🎉 Congratulations! 🎉",
+          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`
+        );
       } else {
-        showModal("Thanks for joining!",
-          `Not a winner this time... but we appreciate you!`);
+        showModal(
+          "Thanks for joining!",
+          `Not a winner this time... but we appreciate you!`
+        );
       }
 
       document.getElementById("counter").textContent =
@@ -196,6 +199,7 @@
       m.querySelector("p").textContent = msg;
       m.style.display = "flex";
     }
+
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#modal button")
         .addEventListener("click", () => {
@@ -206,12 +210,12 @@
 
     function showFinal() {
       const box = document.getElementById("winnerList"),
-            ul = box.querySelector("ul");
+            ul  = box.querySelector("ul");
       ul.innerHTML = winners.map(w =>
         `<li>${w.name} — ${w.company}</li>`
       ).join("");
       box.style.display = "block";
-      box.scrollIntoView({behavior:"smooth"});
+      box.scrollIntoView({ behavior: "smooth" });
     }
 
     window.addEventListener("load", loadEntries);
