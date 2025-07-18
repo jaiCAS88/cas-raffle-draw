@@ -323,9 +323,9 @@
       const total = grid.children.length;
       const left  = MAX_WINNERS - winners.length;
       let chance  = left / total;
-      if (present) chance = Math.min(1, chance + 0.2);
+      if (present) chance = Math.min(1, chance + 0.1);
 
-      const autoWin = (clicks === 30);
+      const autoWin = (clicks === 10);
       const didWin  = autoWin || Math.random() < chance;
 
       // remove tile and mark removed
