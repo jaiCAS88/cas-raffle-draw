@@ -6,207 +6,220 @@
   <title>Bridge the Gap X CAS Raffle Wall</title>
   <style>
     :root {
-      --bg: #1a1a1a; --tile: #2a2a2a;
-      --primary: #888dc5; --secondary: #5247e0;
-      --gold: #ffd700; --light: #ccc;
+      --bg: #1a1a1a;
+      --tile-bg: #2a2a2a;
+      --primary: #888dc5;
+      --secondary: #5247e0;
+      --gold: #ffd700;
+      --light: #ccc;
     }
     body {
-      margin:0;
-      font-family:'Segoe UI',sans-serif;
-      background:var(--bg);
-      color:#fff;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      overflow:auto;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: auto;
+    }
+    /* Logo */
+    #logo {
+      width: 100px;
+      margin: 20px 0 5px;
     }
     h1 {
-      color:var(--primary);
-      margin:20px 0 5px;
+      color: var(--primary);
+      margin: 5px 0 10px;
     }
     #counter {
-      color:var(--gold);
-      margin-bottom:4px;
+      color: var(--gold);
+      margin-bottom: 4px;
     }
     #winnerBar {
-      color:var(--light);
-      margin-bottom:8px;
-      text-align:center;
+      color: var(--light);
+      margin-bottom: 8px;
+      text-align: center;
     }
     #winnerBar span {
-      background:var(--secondary);
-      color:#fff;
-      padding:2px 6px;
-      margin:0 3px;
-      border-radius:3px;
-      display:inline-block;
+      background: var(--secondary);
+      color: #fff;
+      padding: 2px 6px;
+      margin: 0 3px;
+      border-radius: 3px;
+      display: inline-block;
     }
     #refreshButton {
-      background:var(--secondary);
-      border:none;
-      color:#fff;
-      padding:6px 12px;
-      border-radius:5px;
-      cursor:pointer;
-      margin-bottom:12px;
+      background: var(--secondary);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 12px;
     }
     #grid {
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:12px;
-      padding:10px 20px;
-      max-width:90vw;
-      flex-grow:1;
-      overflow-y:auto;
-      max-height:calc(100vh - 260px);
-      margin-bottom:20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      padding: 10px 20px;
+      max-width: 90vw;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: calc(100vh - 260px);
+      margin-bottom: 20px;
     }
     .tile {
-      background:var(--tile);
-      padding:12px 16px;
-      border-radius:8px;
-      text-align:center;
-      cursor:pointer;
-      animation:popIn .3s ease;
-      user-select:none;
+      background: var(--tile-bg);
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      animation: popIn 0.3s ease;
+      user-select: none;
     }
     @keyframes popIn {
-      from { transform:scale(.5); opacity:0; }
-      to   { transform:scale(1); opacity:1; }
+      from { transform: scale(.5); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
     }
     .tile:hover {
-      transform:scale(1.03);
-      background:#333;
+      transform: scale(1.03);
+      background: #333;
     }
     .name {
-      color:var(--gold);
-      font-size:1rem;
+      color: var(--gold);
+      font-size: 1rem;
     }
     .company {
-      color:var(--light);
-      font-size:.8rem;
+      color: var(--light);
+      font-size: 0.8rem;
     }
     /* spinner */
     #spinner {
-      position:fixed;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      border:6px solid var(--tile);
-      border-top:6px solid var(--secondary);
-      border-radius:50%;
-      width:50px; height:50px;
-      animation:spin 1s linear infinite;
-      display:none;
-      z-index:200;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 6px solid var(--tile-bg);
+      border-top: 6px solid var(--secondary);
+      border-radius: 50%;
+      width: 50px; height: 50px;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 200;
     }
-    @keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
-    /* confirm modal */
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    /* presence confirm modal */
     #confirmModal {
-      position:fixed;
-      top:0; left:0; right:0; bottom:0;
-      background:rgba(0,0,0,.8);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:150;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
     }
     #confirmContent {
-      background:var(--tile);
-      padding:24px;
-      border-radius:10px;
-      text-align:center;
-      max-width:320px;
+      background: var(--tile-bg);
+      padding: 24px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
     }
     #confirmContent h2 {
-      margin:0 0 16px;
-      color:var(--gold);
-      font-size:1.2rem;
+      margin: 0 0 16px;
+      color: var(--gold);
+      font-size: 1.2rem;
     }
     #confirmContent button {
-      background:var(--secondary);
-      border:none;
-      color:#fff;
-      padding:8px 16px;
-      margin:0 8px;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:1rem;
+      background: var(--secondary);
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      margin: 0 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
     }
     /* result modal */
     #modal {
-      position:fixed;
-      top:0; left:0; right:0; bottom:0;
-      background:rgba(0,0,0,.8);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:200;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
     }
     #modalContent {
-      background:var(--tile);
-      padding:24px;
-      border-radius:10px;
-      text-align:center;
-      max-width:360px;
+      background: var(--tile-bg);
+      padding: 24px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 360px;
     }
     #modal h2 {
-      margin:0 0 12px;
-      color:var(--gold);
-      font-size:1.6rem;
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: 1.6rem;
     }
     #modal p {
-      margin:12px 0;
-      color:var(--light);
-      font-size:.95rem;
-      white-space:pre-wrap;
+      margin: 12px 0;
+      color: var(--light);
+      font-size: 0.95rem;
+      white-space: pre-wrap;
     }
     #modal button {
-      background:var(--secondary);
-      border:none;
-      color:#fff;
-      padding:6px 14px;
-      border-radius:6px;
-      cursor:pointer;
+      background: var(--secondary);
+      border: none;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
     }
     /* final winners centered */
     #winnerList {
-      position:fixed;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      display:none;
-      background:var(--tile);
-      padding:20px;
-      border:2px solid var(--gold);
-      border-radius:10px;
-      box-shadow:0 0 12px var(--gold)88;
-      max-width:80vw;
-      text-align:center;
-      z-index:250;
-      animation:popWinner .5s ease forwards;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      background: var(--tile-bg);
+      padding: 20px;
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      box-shadow: 0 0 12px var(--gold)88;
+      max-width: 80vw;
+      text-align: center;
+      z-index: 250;
+      animation: popWinner 0.5s ease forwards;
     }
     @keyframes popWinner {
-      from { transform:translate(-50%,-50%) scale(.5); opacity:0; }
-      to   { transform:translate(-50%,-50%) scale(1); opacity:1; }
+      from { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
+      to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
     #winnerList h3 {
-      margin:0 0 12px;
-      color:var(--gold);
-      font-size:1.4rem;
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: 1.4rem;
     }
     #winnerList ul {
-      list-style:none;
-      padding:0;
-      margin:0;
-      color:var(--light);
-      font-size:.9rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      color: var(--light);
+      font-size: 0.9rem;
     }
     #winnerList li {
-      margin:4px 0;
+      margin: 4px 0;
     }
   </style>
 </head>
 <body>
+
+  <!-- logo placeholder -->
+  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Your Logo">
 
   <h1>Bridge the Gap X CAS Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
@@ -216,7 +229,7 @@
   <div id="grid"></div>
   <div id="spinner"></div>
 
-  <!-- Confirm presence modal -->
+  <!-- presence confirm modal -->
   <div id="confirmModal">
     <div id="confirmContent">
       <h2>Is this person here at the booth?</h2>
@@ -225,7 +238,7 @@
     </div>
   </div>
 
-  <!-- Result modal -->
+  <!-- result modal -->
   <div id="modal">
     <div id="modalContent">
       <h2></h2>
@@ -234,24 +247,25 @@
     </div>
   </div>
 
-  <!-- Final winners centered -->
+  <!-- final winners centered -->
   <div id="winnerList">
     <h3>Final Winners 🏆</h3>
     <ul></ul>
   </div>
 
   <script>
-    const API_URL = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
-    const MAX_WINNERS = 2;
-    let winners = [], removed = new Set(), clicks = 0;
+    const API_URL      = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
+    const MAX_WINNERS  = 2;
+    let winners        = [];
+    let removed        = new Set();
+    let clicks         = 0;
 
-    const btn = document.getElementById("refreshButton");
-    const spinner = document.getElementById("spinner");
+    const btn          = document.getElementById("refreshButton");
+    const spinner      = document.getElementById("spinner");
     const confirmModal = document.getElementById("confirmModal");
-    const yesBtn = document.getElementById("confirmYes");
-    const noBtn  = document.getElementById("confirmNo");
+    const yesBtn       = document.getElementById("confirmYes");
+    const noBtn        = document.getElementById("confirmNo");
 
-    // show a custom confirm dialog, returns Promise<boolean>
     function showConfirm() {
       return new Promise(resolve => {
         confirmModal.style.display = "flex";
@@ -263,11 +277,10 @@
         const onYes = () => { cleanup(); resolve(true); };
         const onNo  = () => { cleanup(); resolve(false); };
         yesBtn.addEventListener("click", onYes);
-        noBtn .addEventListener("click", onNo);
+        noBtn.addEventListener("click", onNo);
       });
     }
 
-    // load and render all entries
     async function loadEntries() {
       btn.disabled = true;
       spinner.style.display = "block";
@@ -276,7 +289,6 @@
         if (!res.ok) throw new Error(res.status);
         const raw = await res.json();
 
-        // de-dupe by key and skip removed
         const seenKeys = new Set();
         const data = raw.filter(e => {
           const key = e.name + "|" + e.company;
@@ -285,15 +297,14 @@
           return true;
         });
 
-        // render
         const grid = document.getElementById("grid");
         grid.innerHTML = "";
         data.forEach(p => {
           const key = p.name + "|" + p.company;
           const el = document.createElement("div");
-          el.className = "tile";
+          el.className   = "tile";
           el.dataset.key = key;
-          el.innerHTML =
+          el.innerHTML   =
             `<div class="name">${p.name}</div>` +
             `<div class="company">${p.company}</div>`;
           el.addEventListener("click", () => handleClick(p, el));
@@ -310,30 +321,31 @@
       }
     }
 
-    // handle click, now async to await showConfirm
     async function handleClick(person, tile) {
       if (winners.length >= MAX_WINNERS) return;
       clicks++;
 
-      // custom confirm
       const present = await showConfirm();
 
-      // compute odds
       const grid = document.getElementById("grid");
       const total = grid.children.length;
       const left  = MAX_WINNERS - winners.length;
-      let chance  = left / total;
-      if (present) chance = Math.min(1, chance + 0.1);
 
-      const autoWin = (clicks === 10);
-      const didWin  = autoWin || Math.random() < chance;
+      let didWin;
+      if (clicks === 10 || clicks === 25) {
+        didWin = true;
+      } else if (clicks < 10) {
+        didWin = false;
+      } else {
+        let chance = left / total;
+        if (present) chance = Math.min(1, chance + 0.1);
+        didWin = Math.random() < chance;
+      }
 
-      // remove tile and mark removed
       const key = person.name + "|" + person.company;
       removed.add(key);
       tile.remove();
 
-      // show result modal
       if (didWin) {
         winners.push(person);
         document.getElementById("winnerBar").innerHTML =
@@ -354,12 +366,11 @@
       if (winners.length >= MAX_WINNERS) showFinal();
     }
 
-    // result modal
     function showModal(title, msg) {
       const m = document.getElementById("modal");
       m.querySelector("h2").textContent = title;
       m.querySelector("p").textContent  = msg;
-      m.style.display = "flex";
+      m.style.display                   = "flex";
     }
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#modal button")
@@ -369,7 +380,6 @@
       btn.addEventListener("click", loadEntries);
     });
 
-    // final winners modal
     function showFinal() {
       const box = document.getElementById("winnerList");
       const ul  = box.querySelector("ul");
