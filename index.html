@@ -33,7 +33,6 @@
       gap:12px; padding:10px 20px;
       max-width:90vw; flex-grow:1; overflow-y:auto;
       max-height:calc(100vh - 260px); margin-bottom:20px;
-      background:rgba(0,0,0,0.1);
     }
     .tile {
       background:var(--tile); padding:12px 16px;
@@ -44,16 +43,14 @@
     .tile:hover { transform:scale(1.03); background:#333; }
     .name { color:var(--g); font-size:1rem; }
     .company { color:var(--lt); font-size:.8rem; }
-    /* spinner overlay */
+    /* spinner */
     #spinner {
       position:fixed; top:50%; left:50%;
       transform:translate(-50%,-50%);
       border:6px solid var(--tile);
       border-top:6px solid var(--s);
-      border-radius:50%;
-      width:50px; height:50px;
-      animation:spin 1s linear infinite;
-      display:none; z-index:200;
+      border-radius:50%; width:50px; height:50px;
+      animation:spin 1s linear infinite; display:none; z-index:200;
     }
     @keyframes spin { to{transform:translate(-50%,-50%) rotate(360deg)} }
     /* modal */
@@ -66,8 +63,8 @@
       background:var(--tile); padding:24px; border-radius:10px;
       max-width:360px; text-align:center;
     }
-    #modal h2 { margin:0 0 12px;color:var(--g);font-size:1.6rem;}
-    #modal p { margin:12px 0; color:var(--lt); line-height:1.3;}
+    #modal h2 { margin:0 0 12px;color:var(--g);font-size:1.6rem; }
+    #modal p { margin:12px 0;color:var(--lt);line-height:1.3;}
     #modal button {
       background:var(--s); border:none; color:#fff;
       padding:6px 14px; border-radius:6px; cursor:pointer;
@@ -87,12 +84,13 @@
   </style>
 </head>
 <body>
+
   <h1>Bridge the Gap X CAS Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
   <div id="winnerBar"></div>
   <button id="refreshButton">Update Entries</button>
-  <div id="grid"></div>
 
+  <div id="grid"></div>
   <div id="spinner"></div>
 
   <div id="modal">
@@ -106,89 +104,117 @@
   </div>
 
   <script>
-    const API = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
-    const MAX = 2;
+    const API_URL = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
+    const MAX_WINNERS = 2;
     let winners = [], removed = new Set(), clicks = 0;
 
-    const btn = document.getElementById("refreshButton"),
-          spinner = document.getElementById("spinner");
+    const btn = document.getElementById("refreshButton");
+    const spinner = document.getElementById("spinner");
 
-    async function loadEntries(){
+    async function loadEntries() {
+      btn.disabled = true;
+      spinner.style.display = "block";
+
       try {
-        btn.disabled = true; spinner.style.display="block";
-        const res = await fetch(`${API}?_=${Date.now()}`);
-        if(!res.ok) throw new Error(res.status);
+        const res = await fetch(`${API_URL}?_=${Date.now()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
+        console.log("Fetched entries:", raw.length, raw);
+
+        // de-dupe by email, skip clicked
         const seen = new Set();
-        const data = raw.filter(e=>{
-          const key=e.name+"|"+e.company;
-          if(seen.has(e.email)||removed.has(key)) return false;
-          seen.add(e.email); return true;
+        const data = raw.filter(e => {
+          const key = e.name + "|" + e.company;
+          if (seen.has(e.email) || removed.has(key)) return false;
+          seen.add(e.email);
+          return true;
         });
+        console.log("After filter:", data.length);
+
+        // clear & render all
         const grid = document.getElementById("grid");
-        grid.innerHTML="";
-        data.forEach(p=>{
-          const key=p.name+"|"+p.company,
-                el=document.createElement("div");
-          el.className="tile"; el.dataset.key=key;
-          el.innerHTML=`<div class="name">${p.name}</div>
-                        <div class="company">${p.company}</div>`;
-          el.addEventListener("click",()=>handleClick(p,el));
+        grid.innerHTML = "";
+        data.forEach(p => {
+          const key = p.name + "|" + p.company;
+          const el = document.createElement("div");
+          el.className = "tile";
+          el.dataset.key = key;
+          el.innerHTML =
+            `<div class="name">${p.name}</div>` +
+            `<div class="company">${p.company}</div>`;
+          el.addEventListener("click", () => handleClick(p, el));
           grid.appendChild(el);
         });
-        document.getElementById("counter").textContent=
-          `Winners Picked: ${winners.length}/${MAX}`;
-      }catch(e){console.error(e)}
-      finally{ btn.disabled=false; spinner.style.display="none"; }
-    }
 
-    function handleClick(p,tile){
-      if(winners.length>=MAX) return;
-      clicks++;
-      const present = confirm("Is this person here at the booth?");
-      const grid=document.getElementById("grid"),
-            total=grid.children.length,
-            left=MAX-winners.length;
-      let odds=left/total;
-      if(present) odds=Math.min(1,odds+0.2);
-      const auto30=(clicks===30),
-            win=auto30||Math.random()<odds;
-      const key=p.name+"|"+p.company;
-      removed.add(key); tile.remove();
-      if(win){
-        winners.push(p);
-        document.getElementById("winnerBar").innerHTML=
-          winners.map(w=>`<span>${w.name}</span>`).join("");
-        showModal("🎉 Congrats!","You’ve won a FREE registration!\n📸 Celebrate!");
-      } else {
-        showModal("Thanks!","Not a winner this time... but we appreciate you!");
+        document.getElementById("counter").textContent =
+          `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+
+      } catch (e) {
+        console.error("loadEntries error:", e);
+      } finally {
+        spinner.style.display = "none";
+        btn.disabled = false;
       }
-      document.getElementById("counter").textContent=
-        `Winners Picked: ${winners.length}/${MAX}`;
-      if(winners.length>=MAX) showFinal();
     }
 
-    function showModal(h,m){
-      const mEl=document.getElementById("modal");
-      mEl.querySelector("h2").textContent=h;
-      mEl.querySelector("p").textContent=m;
-      mEl.style.display="flex";
+    function handleClick(person, tile) {
+      if (winners.length >= MAX_WINNERS) return;
+      clicks++;
+
+      const present = confirm("Is this person here at the booth?");
+      const grid = document.getElementById("grid");
+      const total = grid.children.length;
+      const left = MAX_WINNERS - winners.length;
+      let chance = left / total;
+      if (present) chance = Math.min(1, chance + 0.2);
+      const autoWin = (clicks === 30);
+      const didWin = autoWin || Math.random() < chance;
+
+      const key = person.name + "|" + person.company;
+      removed.add(key);
+      tile.remove();
+
+      if (didWin) {
+        winners.push(person);
+        document.getElementById("winnerBar").innerHTML =
+          winners.map(w => `<span>${w.name}</span>`).join(" ");
+        showModal("🎉 Congratulations! 🎉",
+          `You’ve won a FREE registration to next year’s conference!\n\nLet’s take a quick photo to celebrate! 📸`);
+      } else {
+        showModal("Thanks for joining!",
+          `Not a winner this time... but we appreciate you!`);
+      }
+
+      document.getElementById("counter").textContent =
+        `Winners Picked: ${winners.length}/${MAX_WINNERS}`;
+      if (winners.length >= MAX_WINNERS) showFinal();
     }
-    document.addEventListener("DOMContentLoaded",()=>{
+
+    function showModal(title, msg) {
+      const m = document.getElementById("modal");
+      m.querySelector("h2").textContent = title;
+      m.querySelector("p").textContent = msg;
+      m.style.display = "flex";
+    }
+    document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#modal button")
-        .addEventListener("click",
-          ()=>document.getElementById("modal").style.display="none");
-      btn.addEventListener("click",loadEntries);
+        .addEventListener("click", () => {
+          document.getElementById("modal").style.display = "none";
+        });
+      btn.addEventListener("click", loadEntries);
     });
 
-    function showFinal(){
-      const box=document.getElementById("winnerList"),
-            ul=box.querySelector("ul");
-      ul.innerHTML=winners.map(w=>`<li>${w.name} — ${w.company}</li>`).join("");
-      box.style.display="block"; box.scrollIntoView({behavior:"smooth"});
+    function showFinal() {
+      const box = document.getElementById("winnerList"),
+            ul = box.querySelector("ul");
+      ul.innerHTML = winners.map(w =>
+        `<li>${w.name} — ${w.company}</li>`
+      ).join("");
+      box.style.display = "block";
+      box.scrollIntoView({behavior:"smooth"});
     }
 
-    window.addEventListener("load",loadEntries);
+    window.addEventListener("load", loadEntries);
   </script>
 </body>
 </html>
