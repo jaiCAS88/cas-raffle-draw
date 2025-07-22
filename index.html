@@ -23,7 +23,7 @@
       align-items: center;
       overflow: auto;
     }
-    /* Logo */
+    /* logo placeholder */
     #logo {
       width: 100px;
       margin: 20px 0 5px;
@@ -91,10 +91,6 @@
       color: var(--gold);
       font-size: 1rem;
     }
-    .company {
-      color: var(--light);
-      font-size: 0.8rem;
-    }
     /* spinner */
     #spinner {
       position: fixed;
@@ -110,38 +106,6 @@
     }
     @keyframes spin {
       to { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-    /* presence confirm modal */
-    #confirmModal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 150;
-    }
-    #confirmContent {
-      background: var(--tile-bg);
-      padding: 24px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 300px;
-    }
-    #confirmContent h2 {
-      margin: 0 0 16px;
-      color: var(--gold);
-      font-size: 1.2rem;
-    }
-    #confirmContent button {
-      background: var(--secondary);
-      border: none;
-      color: #fff;
-      padding: 8px 16px;
-      margin: 0 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
     }
     /* result modal */
     #modal {
@@ -179,7 +143,7 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    /* final winners centered */
+    /* final winners modal */
     #winnerList {
       position: fixed;
       top: 50%; left: 50%;
@@ -196,8 +160,8 @@
       animation: popWinner 0.5s ease forwards;
     }
     @keyframes popWinner {
-      from { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
-      to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      from { transform: translate(-50%,-50%) scale(.5); opacity: 0; }
+      to   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
     }
     #winnerList h3 {
       margin: 0 0 12px;
@@ -219,7 +183,7 @@
 <body>
 
   <!-- logo placeholder -->
-  <img id="logo" src="https://47832005.fs1.hubspotusercontent-na1.net/hubfs/47832005/logo-icon.png" alt="Your Logo">
+  <img id="logo" src="logo.png" alt="Your Logo">
 
   <h1>Bridge the Gap X CAS Raffle Wall</h1>
   <div id="counter">Winners Picked: 0/2</div>
@@ -228,15 +192,6 @@
 
   <div id="grid"></div>
   <div id="spinner"></div>
-
-  <!-- presence confirm modal -->
-  <div id="confirmModal">
-    <div id="confirmContent">
-      <h2>Is this person here at the booth?</h2>
-      <button id="confirmYes">Yes</button>
-      <button id="confirmNo">No</button>
-    </div>
-  </div>
 
   <!-- result modal -->
   <div id="modal">
@@ -247,39 +202,21 @@
     </div>
   </div>
 
-  <!-- final winners centered -->
+  <!-- final winners modal -->
   <div id="winnerList">
     <h3>Final Winners 🏆</h3>
     <ul></ul>
   </div>
 
   <script>
-    const API_URL      = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
-    const MAX_WINNERS  = 2;
-    let winners        = [];
-    let removed        = new Set();
-    let clicks         = 0;
+    const API_URL     = "https://cas-raffle-draw.netlify.app/.netlify/functions/get-entries";
+    const MAX_WINNERS = 2;
+    let winners       = [];
+    let removed       = new Set();
+    let clicks        = 0;
 
-    const btn          = document.getElementById("refreshButton");
-    const spinner      = document.getElementById("spinner");
-    const confirmModal = document.getElementById("confirmModal");
-    const yesBtn       = document.getElementById("confirmYes");
-    const noBtn        = document.getElementById("confirmNo");
-
-    function showConfirm() {
-      return new Promise(resolve => {
-        confirmModal.style.display = "flex";
-        const cleanup = () => {
-          confirmModal.style.display = "none";
-          yesBtn.removeEventListener("click", onYes);
-          noBtn.removeEventListener("click", onNo);
-        };
-        const onYes = () => { cleanup(); resolve(true); };
-        const onNo  = () => { cleanup(); resolve(false); };
-        yesBtn.addEventListener("click", onYes);
-        noBtn.addEventListener("click", onNo);
-      });
-    }
+    const btn     = document.getElementById("refreshButton");
+    const spinner = document.getElementById("spinner");
 
     async function loadEntries() {
       btn.disabled = true;
@@ -289,11 +226,12 @@
         if (!res.ok) throw new Error(res.status);
         const raw = await res.json();
 
-        const seenKeys = new Set();
+        // dedupe by name|company, skip removed
+        const seen = new Set();
         const data = raw.filter(e => {
           const key = e.name + "|" + e.company;
-          if (seenKeys.has(key) || removed.has(key)) return false;
-          seenKeys.add(key);
+          if (seen.has(key) || removed.has(key)) return false;
+          seen.add(key);
           return true;
         });
 
@@ -304,9 +242,7 @@
           const el = document.createElement("div");
           el.className   = "tile";
           el.dataset.key = key;
-          el.innerHTML   =
-            `<div class="name">${p.name}</div>` +
-            `<div class="company">${p.company}</div>`;
+          el.innerHTML   = `<div class="name">${p.name}</div>`;
           el.addEventListener("click", () => handleClick(p, el));
           grid.appendChild(el);
         });
@@ -321,24 +257,21 @@
       }
     }
 
-    async function handleClick(person, tile) {
+    function handleClick(person, tile) {
       if (winners.length >= MAX_WINNERS) return;
       clicks++;
-
-      const present = await showConfirm();
 
       const grid = document.getElementById("grid");
       const total = grid.children.length;
       const left  = MAX_WINNERS - winners.length;
 
       let didWin;
-      if (clicks === 20 || clicks === 55) {
+      if (clicks === 25 || clicks === 60) {
         didWin = true;
-      } else if (clicks < 20) {
+      } else if (clicks < 25) {
         didWin = false;
       } else {
-        let chance = left / total;
-        if (present) chance = Math.min(1, chance + 0.05);
+        const chance = left / total;
         didWin = Math.random() < chance;
       }
 
@@ -384,7 +317,7 @@
       const box = document.getElementById("winnerList");
       const ul  = box.querySelector("ul");
       ul.innerHTML = winners.map(w =>
-        `<li>${w.name} — ${w.company}</li>`
+        `<li>${w.name}</li>`
       ).join("");
       box.style.display = "block";
     }
