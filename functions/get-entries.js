@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 
-exports.handler = async function(event, context) {
+exports.handler = async (event, context) => {
   const NOTION_TOKEN = "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";
-  const DATABASE_ID  = "your-real-database-id-here";
+  const DATABASE_ID  = "1ddafb7d2f2c8011bd3bd49c4b562775";  // ← your real DB ID
   const url          = `https://api.notion.com/v1/databases/${DATABASE_ID}/query`;
   const headers      = {
     "Authorization": `Bearer ${NOTION_TOKEN}`,
@@ -11,10 +11,10 @@ exports.handler = async function(event, context) {
   };
 
   try {
-    let allPages = [];
-    let cursor   = undefined;
+    let allResults = [];
+    let cursor     = undefined;
 
-    // Fetch loop
+    // 1) Page through results
     do {
       const body = cursor
         ? { start_cursor: cursor }
@@ -22,44 +22,55 @@ exports.handler = async function(event, context) {
       const res = await fetch(url, {
         method: "POST",
         headers,
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
+
+      const text = await res.text();           // read raw text
       if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Notion API ${res.status}: ${err}`);
+        console.error("Notion API error text:", text);
+        throw new Error(`Notion ${res.status}: ${text}`);
       }
-      const data = await res.json();
-      allPages = allPages.concat(data.results);
-      cursor   = data.has_more ? data.next_cursor : undefined;
+
+      const data = JSON.parse(text);
+      allResults = allResults.concat(data.results);
+      cursor     = data.has_more ? data.next_cursor : undefined;
     } while (cursor);
 
-    // Extract name/email/company — same as before
+    // 2) Extract and dedupe entries
     const unique = {};
-    allPages.forEach(page => {
-      const nameProp    = page.properties["Full Name"]?.title;
-      const companyProp = page.properties["Company/Organization"]?.rich_text;
-      const emailProp   = page.properties["Email"]?.email;
+    allResults.forEach(page => {
+      // name
+      const nameProp = page.properties["Full Name"]?.title || [];
+      const name     = nameProp.length
+        ? nameProp[0].text.content
+        : "";
 
-      const name    = nameProp && nameProp.length
-                      ? nameProp[0].text.content
-                      : "";
-      const company = companyProp && companyProp.length
-                      ? companyProp[0].text.content
-                      : "";
-      const email   = emailProp || "";
+      // email
+      const email = page.properties["Email"]?.email || "";
 
+      // company
+      const compProp = page.properties["Company/Organization"]?.rich_text
+                      || page.properties["Company/Organization"]?.title
+                      || [];
+      const company  = compProp.length
+        ? compProp[0].text.content
+        : "";
+
+      // only if we have a name + email
       if (name && email) {
-        unique[name + "|" + email] = { name, email, company };
+        unique[`${name}|${email}`] = { name, email, company };
       }
     });
 
+    const entries = Object.values(unique);
+    console.log(`Returning ${entries.length} unique entries`);
     return {
       statusCode: 200,
-      body: JSON.stringify(Object.values(unique)),
+      body: JSON.stringify(entries),
     };
 
   } catch (err) {
-    console.error("Error fetching Notion pages:", err);
+    console.error("get-entries failed:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),
