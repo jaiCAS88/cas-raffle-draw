@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   const NOTION_TOKEN = "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";
-  const DATABASE_ID  = "1ddafb7d2f2c8011bd3bd49c4b562775";  // ← your real DB ID
+  const DATABASE_ID  = "1ddafb7d2f2c8037ace7e4f799d62fa1";  // ← your real DB ID
   const url          = `https://api.notion.com/v1/databases/${DATABASE_ID}/query`;
   const headers      = {
     "Authorization": `Bearer ${NOTION_TOKEN}`,
